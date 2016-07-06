@@ -13,9 +13,8 @@ var winWidth, winHeight int = 800, 600
 func main() {
 	var window *sdl.Window
 	var renderer *sdl.Renderer
-	var points []sdl.Point
-	var rect sdl.Rect
-	var rects []sdl.Rect
+
+	sdl.Init(sdl.INIT_EVERYTHING)
 
 	window = createWindow(winTitle, winHeight, winWidth)
 	defer window.Destroy()
@@ -25,43 +24,12 @@ func main() {
 	renderer = createRenderer(window)
 	defer renderer.Destroy()
 
-	renderer.Clear()
-
-	renderer.SetDrawColor(255, 255, 255, 255)
-	renderer.DrawPoint(150, 300)
-
-	renderer.SetDrawColor(0, 0, 255, 255)
-	renderer.DrawLine(0, 0, 200, 200)
-
-	points = []sdl.Point{{0, 0}, {100, 300}, {100, 300}, {200, 0}}
-	renderer.SetDrawColor(255, 255, 0, 255)
-	renderer.DrawLines(points)
-
-	rect = sdl.Rect{300, 0, 200, 200}
-	renderer.SetDrawColor(255, 0, 0, 255)
-	renderer.DrawRect(&rect)
-
-	rects = []sdl.Rect{{400, 400, 100, 100}, {550, 350, 200, 200}}
-	renderer.SetDrawColor(0, 255, 255, 255)
-	renderer.DrawRects(rects)
-
-	rect = sdl.Rect{250, 250, 200, 200}
-	renderer.SetDrawColor(0, 255, 0, 255)
-	renderer.FillRect(&rect)
-
-	rects = []sdl.Rect{{500, 300, 100, 100}, {200, 300, 200, 200}}
-	renderer.SetDrawColor(255, 0, 255, 255)
-	renderer.FillRects(rects)
-
-	renderer.Present()
-
-	sdl.Delay(2000)
-
-	tickChan := time.Tick(time.Second)
+	secTickChan := time.Tick(time.Second)
 	stopChan := time.After(time.Second * 10)
 
 	var i int32 = 0
 
+	renderer.Clear()
 	for {
 		renderer.SetDrawColor(0, 0, 0, 0)
 		renderer.Clear()
@@ -70,17 +38,19 @@ func main() {
 		renderer.SetDrawColor(255, 0, 0, 255)
 		renderer.DrawRect(&rect)
 		renderer.Present()
+
+		GetEvents()
+
 		select {
 		case <-stopChan:
 			os.Exit(0)
-		case <-tickChan:
+		case <-secTickChan:
 			log.Println(i)
 			i = 0
 		default:
 			i++
-			// log.Println(i)
 		}
-		//sdl.Delay(100)
+		sdl.Delay(13)
 	}
 
 }
