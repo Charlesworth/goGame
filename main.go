@@ -25,30 +25,40 @@ func main() {
 	defer renderer.Destroy()
 
 	secTickChan := time.Tick(time.Second)
-	stopChan := time.After(time.Second * 10)
 
-	var i int32 = 0
+	var y int32 = 0
+	events := Events{}
+	var x int32 = 300
+	fps := 0
 
 	renderer.Clear()
 	for {
+		events.GetEvents()
+		if events.left {
+			x--
+		} else if events.right {
+			x++
+		}
+
+		if events.up {
+			y--
+		} else if events.down {
+			y++
+		}
+
 		renderer.SetDrawColor(0, 0, 0, 0)
 		renderer.Clear()
-		// renderer.SetDrawColor(255, 0, 0, 0)
-		rect := sdl.Rect{300, i, 200, 200}
+		rect := sdl.Rect{x, y, 200, 200}
 		renderer.SetDrawColor(255, 0, 0, 255)
 		renderer.DrawRect(&rect)
 		renderer.Present()
 
-		GetEvents()
-
 		select {
-		case <-stopChan:
-			os.Exit(0)
 		case <-secTickChan:
-			log.Println(i)
-			i = 0
+			log.Println("fps:", fps)
+			fps = 0
 		default:
-			i++
+			fps++
 		}
 		sdl.Delay(13)
 	}
