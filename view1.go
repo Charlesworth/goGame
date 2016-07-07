@@ -2,8 +2,6 @@ package main
 
 import (
 	"github.com/veandco/go-sdl2/sdl"
-	"log"
-	// "math"
 )
 
 type view1 struct {
@@ -11,21 +9,22 @@ type view1 struct {
 }
 
 type player struct {
-	x           int32
-	y           int32
-	speedOnAxis float64
-	speedOnDiag float64
+	rect        sdl.Rect
+	speedOnAxis int32
+	speedOnDiag int32
 }
 
-var PlayerSpeed float64 = 10.0
-
 func NewView1() view1 {
+	playerRect := sdl.Rect{
+		X: 350,
+		Y: 250,
+		W: 100,
+		H: 100,
+	}
 	p := player{
-		x:           350,
-		y:           250,
-		speedOnAxis: PlayerSpeed,
-		// speedOnDiag: (1 / math.Sqrt(2.0) * PlayerSpeed)
-		speedOnDiag: 2.0 * PlayerSpeed,
+		rect:        playerRect,
+		speedOnAxis: 3,
+		speedOnDiag: 2,
 	}
 
 	return view1{
@@ -40,10 +39,9 @@ func (v1 *view1) Render(renderer *sdl.Renderer, events *Events) {
 	renderer.SetDrawColor(0, 0, 0, 0)
 	renderer.Clear()
 
-	rectPlayer := sdl.Rect{v1.player.x, v1.player.y, 100, 100}
 	renderer.SetDrawColor(255, 0, 0, 255)
-	renderer.DrawRect(&rectPlayer)
-	renderer.FillRect(&rectPlayer)
+	renderer.DrawRect(&v1.player.rect)
+	renderer.FillRect(&v1.player.rect)
 	renderer.Present()
 
 	return
@@ -54,24 +52,20 @@ func (player *player) calculateMovement(events *Events) {
 	var speed int32
 
 	if diagonalMovement {
-		speed = int32(player.speedOnDiag)
-		log.Println("diag")
-		log.Println(speed)
+		speed = player.speedOnDiag
 	} else {
-		speed = int32(player.speedOnAxis)
-		log.Println("straight")
-		log.Println(speed)
+		speed = player.speedOnAxis
 	}
 
 	if events.left {
-		player.x -= speed
+		player.rect.X -= speed
 	} else if events.right {
-		player.x += speed
+		player.rect.X += speed
 	}
 
 	if events.up {
-		player.y -= speed
+		player.rect.Y -= speed
 	} else if events.down {
-		player.y += speed
+		player.rect.Y += speed
 	}
 }
