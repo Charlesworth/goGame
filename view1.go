@@ -81,4 +81,24 @@ func (player *player) calculateMovement(events *Events) {
 	} else if events.down {
 		player.rect.Y += speed
 	}
+
+	player.keepInWindow()
+}
+
+func (player *player) keepInWindow() {
+	if (player.rect.Y + player.rect.H) > winHeight {
+		player.rect.Y = winHeight - player.rect.H
+	}
+
+	if player.rect.Y < 0 {
+		player.rect.Y = 0
+	}
+
+	if (player.rect.X + player.rect.W) > winWidth {
+		player.rect.X = winWidth - player.rect.W
+	}
+
+	if player.rect.X < 0 {
+		player.rect.X = 0
+	}
 }
