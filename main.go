@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var winTitle string = "Go-SDL2 Render"
+var winTitle string = "Go Game"
 var winWidth, winHeight int = 800, 600
 
 func main() {
@@ -19,40 +19,29 @@ func main() {
 	window = createWindow(winTitle, winHeight, winWidth)
 	defer window.Destroy()
 
-	//window.Maximize()
-
 	renderer = createRenderer(window)
 	defer renderer.Destroy()
 
 	secTickChan := time.Tick(time.Second)
+	// frameTickChan := time.Tick(time.Microsecond * 16400)
 
-	var y int32 = 0
-	events := Events{}
-	var x int32 = 300
-	fps := 0
+	var events = &Events{}
+	var fps = 0
+	var view = NewView1()
 
-	renderer.Clear()
 	for {
+		// Pump events
 		events.GetEvents()
-		if events.left {
-			x--
-		} else if events.right {
-			x++
-		}
 
-		if events.up {
-			y--
-		} else if events.down {
-			y++
-		}
+		// Pass events and renderer to view
+		view.Render(renderer, events)
 
-		renderer.SetDrawColor(0, 0, 0, 0)
-		renderer.Clear()
-		rect := sdl.Rect{x, y, 200, 200}
-		renderer.SetDrawColor(255, 0, 0, 255)
-		renderer.DrawRect(&rect)
-		renderer.Present()
+		// If view returned a new view, use that instead
+		// if newView != nil {
+		// 	view = newView
+		// }
 
+		// This structure logs the fps
 		select {
 		case <-secTickChan:
 			log.Println("fps:", fps)
@@ -60,10 +49,16 @@ func main() {
 		default:
 			fps++
 		}
+
+		// Delay the next frame rendering to free up CPU
 		sdl.Delay(13)
+		// <-frameTickChan
 	}
 
 }
+
+// interface render(renderer *sdl.Renderer, events *Events) (newView interfaceOfView) {
+// }
 
 func createWindow(title string, height int, width int) *sdl.Window {
 	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
