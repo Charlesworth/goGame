@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/veandco/go-sdl2/sdl"
+	"log"
+	"math/rand"
 	"os"
 )
 
@@ -43,9 +45,38 @@ func NewView1() view1 {
 	}
 }
 
-func (v1 *view1) Render(renderer *sdl.Renderer, events *Events) {
+type meator struct {
+	rect  Rect
+	speed int
+}
 
+func (m *meator) move() {
+	m.rect.X -= m.speed
+}
+
+func spawnMeator() meator {
+	yPos := rand.Intn(winHeight)
+	height := rand.Intn(60) + 20
+	width := rand.Intn(60) + 20
+	speed := rand.Intn(6)
+	return meator{
+		rect:  Rect{X: winWidth, Y: yPos, H: height, W: width},
+		speed: speed,
+	}
+}
+
+// var enemyTick chan time.Time = time.Tick(time.Second * 4)
+var count int = 0
+var score int = 0
+
+// var enemys []Rect = []Rect{Rect{350, 350, 100, 100},
+// 	Rect{450, 450, 50, 50},
+// 	Rect{0, 375, 30, 30}}
+var meators []meator
+
+func (v1 *view1) Render(renderer *sdl.Renderer, events *Events) {
 	v1.player.calculateMovement(events)
+	count++
 
 	renderer.SetDrawColor(0, 0, 0, 0)
 	renderer.Clear()
@@ -59,17 +90,43 @@ func (v1 *view1) Render(renderer *sdl.Renderer, events *Events) {
 	renderer.DrawRect(playerWeaponSDLRect)
 	renderer.FillRect(playerWeaponSDLRect)
 
-	enemy := Rect{300, 300, 100, 100}
-	enemySDLRect := enemy.GetSDLRect()
-	renderer.SetDrawColor(0, 255, 0, 255)
-	renderer.DrawRect(enemySDLRect)
-	renderer.FillRect(enemySDLRect)
+	var destroyedMeators []int
+	for i, enemy := range meators {
+		enemy.move()
+		enemySDLRect := enemy.rect.GetSDLRect()
+		renderer.SetDrawColor(0, 255, 0, 255)
+		renderer.DrawRect(enemySDLRect)
+		renderer.FillRect(enemySDLRect)
 
-	if v1.player.rect.Colision(enemy) {
-		os.Exit(0)
+		if v1.player.rect.Colision(enemy.rect) {
+			//display score here
+			log.Println("You died :(")
+			log.Println("Score:", score)
+			sdl.Delay(1000)
+			os.Exit(0)
+		}
+		meators[i] = enemy
+
+		// if v1.player.weapon.rect.Colision(enemy) {
+		if enemy.rect.Colision(v1.player.weapon.rect) {
+			log.Println("BOOM!")
+			destroyedMeators = append(destroyedMeators, i)
+			score++
+			// meators = append(meators[:i], meators[i+1:]...)
+		}
+	}
+
+	for _, i := range destroyedMeators {
+		meators = append(meators[:i], meators[i+1:]...)
 	}
 
 	renderer.Present()
+
+	if count > 180 {
+		newMeator := spawnMeator()
+		meators = append(meators, newMeator)
+		count = 0
+	}
 
 	return
 }
@@ -130,26 +187,26 @@ type spinWeapon struct {
 
 func (w *spinWeapon) calculateMovement() {
 	if (w.xAdd == 200) && (w.yAdd < 200) {
-		w.yAdd++
-		w.rect.Y++
+		w.yAdd += 4
+		w.rect.Y += 4
 		return
 	}
 
 	if (w.yAdd == 200) && (w.xAdd > 0) {
-		w.xAdd--
-		w.rect.X--
+		w.xAdd -= 8
+		w.rect.X -= 8
 		return
 	}
 
 	if (w.xAdd == 0) && (w.yAdd > 0) {
-		w.yAdd--
-		w.rect.Y--
+		w.yAdd -= 8
+		w.rect.Y -= 8
 		return
 	}
 
 	if (w.yAdd == 0) && (w.xAdd < 200) {
-		w.xAdd++
-		w.rect.X++
+		w.xAdd += 8
+		w.rect.X += 8
 		return
 	}
 }
