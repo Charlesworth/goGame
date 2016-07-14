@@ -54,6 +54,10 @@ func (m *meator) move() {
 	m.rect.X -= m.speed
 }
 
+func (m *meator) isOffScreen() bool {
+	return (m.rect.X + m.rect.W) < 0
+}
+
 func spawnMeator() meator {
 	yPos := rand.Intn(winHeight)
 	height := rand.Intn(60) + 20
@@ -65,18 +69,14 @@ func spawnMeator() meator {
 	}
 }
 
-// var enemyTick chan time.Time = time.Tick(time.Second * 4)
 var count int = 0
 var score int = 0
+var diff int = 0
 
-// var enemys []Rect = []Rect{Rect{350, 350, 100, 100},
-// 	Rect{450, 450, 50, 50},
-// 	Rect{0, 375, 30, 30}}
 var meators []meator
 
 func (v1 *view1) Render(renderer *sdl.Renderer, events *Events) {
 	v1.player.calculateMovement(events)
-	count++
 
 	renderer.SetDrawColor(0, 0, 0, 0)
 	renderer.Clear()
@@ -100,6 +100,7 @@ func (v1 *view1) Render(renderer *sdl.Renderer, events *Events) {
 
 		if v1.player.rect.Colision(enemy.rect) {
 			//display score here
+			renderer.Present()
 			log.Println("You died :(")
 			log.Println("Score:", score)
 			sdl.Delay(1000)
@@ -107,12 +108,10 @@ func (v1 *view1) Render(renderer *sdl.Renderer, events *Events) {
 		}
 		meators[i] = enemy
 
-		// if v1.player.weapon.rect.Colision(enemy) {
-		if enemy.rect.Colision(v1.player.weapon.rect) {
+		if enemy.rect.Colision(v1.player.weapon.rect) || enemy.isOffScreen() {
 			log.Println("BOOM!")
 			destroyedMeators = append(destroyedMeators, i)
 			score++
-			// meators = append(meators[:i], meators[i+1:]...)
 		}
 	}
 
@@ -122,11 +121,15 @@ func (v1 *view1) Render(renderer *sdl.Renderer, events *Events) {
 
 	renderer.Present()
 
-	if count > 180 {
+	if count > 100 {
 		newMeator := spawnMeator()
 		meators = append(meators, newMeator)
-		count = 0
+		count = rand.Intn(30) + diff
+		if diff < 60 {
+			diff = diff + 3
+		}
 	}
+	count++
 
 	return
 }
