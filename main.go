@@ -27,7 +27,7 @@ func main() {
 
 	var events = &Events{}
 	var fps = 0
-	var view = NewView1()
+	var view = NewGameView()
 
 	for {
 		// Pump events

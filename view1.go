@@ -7,40 +7,14 @@ import (
 	"os"
 )
 
-type view1 struct {
+type gameView struct {
 	player player
 }
 
-type player struct {
-	rect        Rect
-	weapon      spinWeapon
-	speedOnAxis int
-	speedOnDiag int
-}
+func NewGameView() gameView {
+	p := newPlayer(200, 200)
 
-func NewView1() view1 {
-	playerRect := Rect{
-		X: 200,
-		Y: 200,
-		W: 100,
-		H: 100,
-	}
-
-	weaponRect := Rect{
-		X: 150,
-		Y: 150,
-		W: 10,
-		H: 10,
-	}
-
-	p := player{
-		rect:        playerRect,
-		weapon:      spinWeapon{weaponRect, 0, 0},
-		speedOnAxis: 3,
-		speedOnDiag: 2,
-	}
-
-	return view1{
+	return gameView{
 		player: p,
 	}
 }
@@ -75,7 +49,7 @@ var diff int = 0
 
 var meators []meator
 
-func (v1 *view1) Render(renderer *sdl.Renderer, events *Events) {
+func (v1 *gameView) Render(renderer *sdl.Renderer, events *Events) {
 	v1.player.calculateMovement(events)
 
 	renderer.SetDrawColor(0, 0, 0, 0)
@@ -132,84 +106,4 @@ func (v1 *view1) Render(renderer *sdl.Renderer, events *Events) {
 	count++
 
 	return
-}
-
-func (player *player) calculateMovement(events *Events) {
-	diagonalMovement := (events.up != events.down) && (events.left != events.right)
-	var speed int
-
-	if diagonalMovement {
-		speed = player.speedOnDiag
-	} else {
-		speed = player.speedOnAxis
-	}
-
-	if events.left {
-		player.rect.X -= speed
-		player.weapon.rect.X -= speed
-	} else if events.right {
-		player.rect.X += speed
-		player.weapon.rect.X += speed
-	}
-
-	if events.up {
-		player.rect.Y -= speed
-		player.weapon.rect.Y -= speed
-	} else if events.down {
-		player.rect.Y += speed
-		player.weapon.rect.Y += speed
-	}
-
-	player.weapon.calculateMovement()
-	player.keepInWindow()
-}
-
-func (player *player) keepInWindow() {
-	if (player.rect.Y + player.rect.H) > winHeight {
-		player.rect.Y = winHeight - player.rect.H
-	}
-
-	if player.rect.Y < 0 {
-		player.rect.Y = 0
-	}
-
-	if (player.rect.X + player.rect.W) > winWidth {
-		player.rect.X = winWidth - player.rect.W
-	}
-
-	if player.rect.X < 0 {
-		player.rect.X = 0
-	}
-}
-
-type spinWeapon struct {
-	rect Rect
-	xAdd int
-	yAdd int
-}
-
-func (w *spinWeapon) calculateMovement() {
-	if (w.xAdd == 200) && (w.yAdd < 200) {
-		w.yAdd += 4
-		w.rect.Y += 4
-		return
-	}
-
-	if (w.yAdd == 200) && (w.xAdd > 0) {
-		w.xAdd -= 8
-		w.rect.X -= 8
-		return
-	}
-
-	if (w.xAdd == 0) && (w.yAdd > 0) {
-		w.yAdd -= 8
-		w.rect.Y -= 8
-		return
-	}
-
-	if (w.yAdd == 0) && (w.xAdd < 200) {
-		w.xAdd += 8
-		w.rect.X += 8
-		return
-	}
 }
