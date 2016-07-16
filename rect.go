@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/veandco/go-sdl2/sdl"
-	"log"
 )
 
 type Rect struct {
@@ -26,7 +25,6 @@ func (rect *Rect) Colision(otherRect Rect) bool {
 	}
 
 	if inx && iny {
-		log.Println("IN!!!!")
 		return true
 	}
 

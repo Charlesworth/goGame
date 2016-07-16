@@ -19,30 +19,6 @@ func NewGameView() gameView {
 	}
 }
 
-type meator struct {
-	rect  Rect
-	speed int
-}
-
-func (m *meator) move() {
-	m.rect.X -= m.speed
-}
-
-func (m *meator) isOffScreen() bool {
-	return (m.rect.X + m.rect.W) < 0
-}
-
-func spawnMeator() meator {
-	yPos := rand.Intn(winHeight)
-	height := rand.Intn(60) + 20
-	width := rand.Intn(60) + 20
-	speed := rand.Intn(6)
-	return meator{
-		rect:  Rect{X: winWidth, Y: yPos, H: height, W: width},
-		speed: speed,
-	}
-}
-
 var count int = 0
 var score int = 0
 var diff int = 0
@@ -82,8 +58,12 @@ func (v1 *gameView) Render(renderer *sdl.Renderer, events *Events) {
 		}
 		meators[i] = enemy
 
-		if enemy.rect.Colision(v1.player.weapon.rect) || enemy.isOffScreen() {
-			log.Println("BOOM!")
+		if enemy.rect.Colision(v1.player.weapon.rect) {
+			destroyedMeators = append(destroyedMeators, i)
+			score += 10
+		}
+
+		if enemy.isOffScreen() {
 			destroyedMeators = append(destroyedMeators, i)
 			score++
 		}
@@ -106,4 +86,28 @@ func (v1 *gameView) Render(renderer *sdl.Renderer, events *Events) {
 	count++
 
 	return
+}
+
+type meator struct {
+	rect  Rect
+	speed int
+}
+
+func (m *meator) move() {
+	m.rect.X -= m.speed
+}
+
+func (m *meator) isOffScreen() bool {
+	return (m.rect.X + m.rect.W) < 0
+}
+
+func spawnMeator() meator {
+	yPos := rand.Intn(winHeight)
+	height := rand.Intn(60) + 20
+	width := rand.Intn(60) + 20
+	speed := rand.Intn(6)
+	return meator{
+		rect:  Rect{X: winWidth, Y: yPos, H: height, W: width},
+		speed: speed,
+	}
 }
