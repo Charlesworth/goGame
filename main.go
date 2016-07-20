@@ -22,9 +22,7 @@ func main() {
 	renderer = createRenderer(window)
 	defer renderer.Destroy()
 
-	secTickChan := time.Tick(time.Second)
-	// frameTickChan := time.Tick(time.Microsecond * 16400)
-
+	var secTickChan = time.Tick(time.Second)
 	var events = &Events{}
 	var fps = 0
 	var view = NewGameView()
@@ -35,11 +33,6 @@ func main() {
 
 		// Pass events and renderer to view
 		view.Render(renderer, events)
-
-		// If view returned a new view, use that instead
-		// if newView != nil {
-		// 	view = newView
-		// }
 
 		// This structure logs the fps
 		select {
@@ -52,13 +45,8 @@ func main() {
 
 		// Delay the next frame rendering to free up CPU
 		sdl.Delay(13)
-		// <-frameTickChan
 	}
-
 }
-
-// interface render(renderer *sdl.Renderer, events *Events) (newView interfaceOfView) {
-// }
 
 func createWindow(title string, height int, width int) *sdl.Window {
 	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,

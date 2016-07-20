@@ -7,8 +7,14 @@ import (
 	"os"
 )
 
+// the gameView object is what we pass the renderer and events to
+// each frame and it outputs the current game state to the player
 type gameView struct {
-	player player
+	player      player
+	score       int
+	meteors     []meteor
+	meteorTimer int
+	difficulty  int
 }
 
 func NewGameView() gameView {
@@ -19,95 +25,79 @@ func NewGameView() gameView {
 	}
 }
 
-var count int = 0
-var score int = 0
-var diff int = 0
+func (view *gameView) Render(renderer *sdl.Renderer, events *Events) {
+	view.player.calculateMovement(events)
 
-var meators []meator
-
-func (v1 *gameView) Render(renderer *sdl.Renderer, events *Events) {
-	v1.player.calculateMovement(events)
-
+	// start each new frame by filling the frame black
 	renderer.SetDrawColor(0, 0, 0, 0)
 	renderer.Clear()
 
+	// draw the player
 	renderer.SetDrawColor(255, 0, 0, 255)
-	playerSDLRect := v1.player.rect.GetSDLRect()
+	playerSDLRect := view.player.rect.GetSDLRect()
 	renderer.DrawRect(playerSDLRect)
 	renderer.FillRect(playerSDLRect)
 
-	playerWeaponSDLRect := v1.player.weapon.rect.GetSDLRect()
+	// draw the players spinning weapon
+	playerWeaponSDLRect := view.player.weapon.rect.GetSDLRect()
 	renderer.DrawRect(playerWeaponSDLRect)
 	renderer.FillRect(playerWeaponSDLRect)
 
-	var destroyedMeators []int
-	for i, enemy := range meators {
-		enemy.move()
-		enemySDLRect := enemy.rect.GetSDLRect()
+	// destroyedMeteors is used to remove destroyed meteors outside
+	// of looping through view.meteors to avoid out of range errors
+	var destroyedMeteors []int
+
+	// loop through the frames active meteors
+	for i, meteor := range view.meteors {
+		// move and draw and then reinsert the moved meteor
+		meteor.move()
+		enemySDLRect := meteor.rect.GetSDLRect()
 		renderer.SetDrawColor(0, 255, 0, 255)
 		renderer.DrawRect(enemySDLRect)
 		renderer.FillRect(enemySDLRect)
+		view.meteors[i] = meteor
 
-		if v1.player.rect.Colision(enemy.rect) {
-			//display score here
+		// if the player and meteor collide, end the game
+		if view.player.rect.Colision(meteor.rect) {
 			renderer.Present()
-			log.Println("You died :(")
-			log.Println("Score:", score)
+			log.Println("You died!")
+			log.Println("Score:", view.score)
 			sdl.Delay(1000)
 			os.Exit(0)
 		}
-		meators[i] = enemy
 
-		if enemy.rect.Colision(v1.player.weapon.rect) {
-			destroyedMeators = append(destroyedMeators, i)
-			score += 10
+		// if the weapon and meteor collide, destroy it and update score
+		if meteor.rect.Colision(view.player.weapon.rect) {
+			destroyedMeteors = append(destroyedMeteors, i)
+			view.score += 10
 		}
 
-		if enemy.isOffScreen() {
-			destroyedMeators = append(destroyedMeators, i)
-			score++
+		// if the meteor is off screen, destroy it and update score
+		if meteor.isOffScreen() {
+			destroyedMeteors = append(destroyedMeteors, i)
+			view.score++
 		}
 	}
 
-	for _, i := range destroyedMeators {
-		meators = append(meators[:i], meators[i+1:]...)
+	// for each destroyed meteor, remove it from the meteors slice
+	for _, i := range destroyedMeteors {
+		view.meteors = append(view.meteors[:i], view.meteors[i+1:]...)
 	}
 
+	// present the updated frame to the player
 	renderer.Present()
 
-	if count > 100 {
-		newMeator := spawnMeator()
-		meators = append(meators, newMeator)
-		count = rand.Intn(30) + diff
-		if diff < 60 {
-			diff = diff + 3
+	// add new meteors depending on the difficulty and ticks since
+	// last meteor was added
+	if view.meteorTimer > 100 {
+		newMeteor := spawnMeteor()
+		view.meteors = append(view.meteors, newMeteor)
+		view.meteorTimer = rand.Intn(30) + view.difficulty
+		if view.difficulty < 60 {
+			view.difficulty += 3
 		}
 	}
-	count++
+	view.meteorTimer++
 
 	return
-}
-
-type meator struct {
-	rect  Rect
-	speed int
-}
-
-func (m *meator) move() {
-	m.rect.X -= m.speed
-}
-
-func (m *meator) isOffScreen() bool {
-	return (m.rect.X + m.rect.W) < 0
-}
-
-func spawnMeator() meator {
-	yPos := rand.Intn(winHeight)
-	height := rand.Intn(60) + 20
-	width := rand.Intn(60) + 20
-	speed := rand.Intn(6)
-	return meator{
-		rect:  Rect{X: winWidth, Y: yPos, H: height, W: width},
-		speed: speed,
-	}
 }
