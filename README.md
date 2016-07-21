@@ -1,5 +1,7 @@
 ## A simple video game made with SDL2 and Go
 
+![Demo gif](https://github.com/Charlesworth/goGame/blob/master/demo.gif?raw=true)
+
 This project is a very simple proof of concept game, using SDL2 and the Go programming language. The main logic of the program can be found in the gameView.go file. I've only tested it on windows 10 with access to the valid SDL2 libraries.
 
 ### My conclusions from the project on using Go for Games:
